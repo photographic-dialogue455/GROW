@@ -1,0 +1,121 @@
+# GROW / ORW: advantage-weighted flow-matching RL fine-tuning of DiTAR.
+# On the first run, ref and policy are both initialized from model.orw.ref_ckpt_path
+# (the SFT ckpt), so step-0 KL = 0. On resume, policy restores from the trainer
+# checkpoint while reference stays fixed.
+# reward: local ASR 1-WER and/or WavLM speaker similarity.
+
+hydra:
+  run:
+    dir: ckpts/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+
+wandb_config:
+  project: DiTAR-ORW
+  wandb_run_name: orw_semanticvae_${now:%Y-%m-%d}_${now:%H-%M-%S}
+  resume_id: null
+  mode: online   # 'online' | 'offline' | 'disabled'
+
+ckpts:
+  logger: wandb
+  save_per_updates: 100
+  keep_last_n_checkpoints: -1
+  last_per_updates: 100
+  save_dir: ckpts/orw/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  checkpoint_step:
+  max_updates: null                   # auto-stop after this global_update (null = no limit)
+  # Crash early-stop: end when global mean implicit_acc drops below this (null = off).
+  # Only active when reward_type is in early_stop_reward_types (acc = (sim + (1-wer))/2 ∈ [0,1]).
+  early_stop_min_acc: null
+  early_stop_reward_types:
+    - sim_and_wer
+
+datasets:
+  train_ds_path: data/RL_mixed_emilia_libritts_30k
+  val_ds_path: data/Emilia_RL_zhen_dev
+
+  batch_size_per_gpu: 4000
+  batch_size_type: frame
+  max_samples: 1
+  num_workers: 8
+  target_sample_rate: 16000
+
+optim:
+  epochs: 10
+  learning_rate: 2.0e-6           # small LR for the RL stage (Table 4)
+  grad_accumulation_steps: 2
+  max_grad_norm: 5.0
+  bnb_optimizer: False
+
+model:
+  name: DiTAR_ORW
+  audio_type: vae_online
+  audio_channels: 64
+  patch_size: ${model.aggregation_encoder.patch_size}
+  dim: ${model.backbone.hidden_size}
+  mlp_hidden_dim: 512
+
+  # ---- GROW / ORW section ----------------------------------------------
+  orw:
+    # Pretrained DiTAR checkpoint (SFT); ref and policy both init from here on the first run.
+    ref_ckpt_path: model_ckpts/01_pretrain/model_200000.pt
+
+    beta: 0.025                # W2/KL anchor weight (Table 4)
+    alpha: 0.1                 # temperature τ (rm_method=exp/exp_softmax)
+    n_rollout: 8               # group size G
+    rm_method: grpo            # grpo=A/σ | exp=exp(τA) | exp_softmax=exp(τr) (Table 2)
+
+    # reward: "wer" 1-WER | "sim" WavLM speaker similarity | "sim_and_wer" both (Table 5)
+    reward_type: sim_and_wer
+    wer_weight: 1.0            # sim_and_wer: linear weights after per-group z-score of each path
+    sim_weight: 1.0
+
+    # rollout sampling hyperparameters
+    sample_steps: 10           # rollout NFE (Table 1 sweeps 32/10/5)
+    cfg_strength: 1.5          # rollout CFG γ (Table 3: 1.5 / 0)
+    sway_sampling_coef: -1.0
+    max_seq_length: 155        # ~15s
+    min_seq_length: 10         # ~1.5s buffer
+
+    # loss velocity: false=conditional vc (default) / true=CFG-guided vg (Table 3)
+    loss_cfg: false
+
+    spk:
+      ckpt_path: checkpoints/wavlm_large_finetune.pth   # WavLM finetuned weights (same as eval run_sim)
+      gen_sample_rate: 16000   # generator (Semantic-VAE) output sample rate
+      prompt_sample_rate: ${datasets.target_sample_rate}  # prompt (raw_wav) sample rate
+
+  backbone:
+    name: Qwen
+    hidden_size: 1024
+    version: qwen3
+    qwen_config_path: checkpoints/Qwen3-0.6B/config.json
+    pretrained_LM_path: checkpoints/Qwen3-0.6B
+    load_pretrained_weights: true
+  aggregation_encoder:
+    name: qwen
+    hidden_size: ${model.backbone.hidden_size}
+    intermediate_size: 4096
+    num_attention_heads: 16
+    num_hidden_layers: 6
+    patch_size: 4
+    pool_type: cls
+  loc_decoder:
+    name: DiT
+    model:
+      dim: 1024
+      out_dim: ${model.audio_channels}
+      depth: 6
+      heads: 16
+      ff_mult: 4
+      qk_norm: null
+      pe_attn_head: null
+      checkpoint_activations: False
+    history_vae_window_size: 4
+    drop_cond_prob: 0.1
+  vocoder:
+    mel_spec_type: semanticvae
+    is_local: True  # use local offline ckpt or not
+    local_path: checkpoints/Semantic-VAE/semantic_vae_1000k  # local vocoder path
+    feature_extractor_ckpt: checkpoints/Semantic-VAE/semantic_vae_1000k
+
+loss_weight:
+  diff_loss: 1.0

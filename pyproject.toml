@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "grow"
+version = "0.1.0"
+description = "GROW: Group-Relative Advantage-Weighted On-Policy RL of Autoregressive-Diffusion TTS"
+readme = "README.md"
+license = { text = "MIT License" }
+requires-python = ">=3.10"
+
+# For an exact replica of the tested environment, use requirements.txt.
+# torch/torchaudio/torchvision (CUDA-12.6 wheels) are installed separately
+# — see README.md.
+dependencies = [
+    "torch>=2.7.0",
+    "torchaudio>=2.7.0",
+    "torchvision>=0.22.0",
+    "numpy<2.0",
+    "scipy",
+    "einops",
+    "PyYAML",
+    "tqdm",
+    "matplotlib",
+    "transformers>=4.57.0",
+    "tokenizers",
+    "safetensors",
+    "huggingface-hub",
+    "accelerate>=1.0.0",
+    "datasets",
+    "sentencepiece",
+    "transformers-stream-generator",
+    "hydra-core>=1.3.0",
+    "omegaconf",
+    "wandb",
+    "ema-pytorch",
+    "bitsandbytes",
+    "x-transformers>=2.0.0",
+    "torchdiffeq",
+    "soundfile",
+    "librosa",
+    "pydub",
+    "numba",
+    "encodec",
+    "julius",
+    "pypinyin",
+    "jieba",
+    "pandas",
+    # VAE tokenizer (src/DiTAR/vae_dac)
+    "descript-audiotools==0.7.2",
+    "descript-audio-codec==1.0.0",
+    "flatten-dict",
+    "argbind",
+    # evaluation: WER / speaker similarity
+    "jiwer",
+    "funasr",
+    "faster-whisper",
+    "qwen-asr",
+    "Resemblyzer",
+    "zhconv",
+    "zhon",
+]
+
+[project.urls]
+Homepage = "https://github.com/yanghaha0908/GROW"
+
+# src/ layout: the package lives at src/DiTAR (PEP-420 namespace tree, no
+# top-level __init__.py). find_namespace is required so __init__-less
+# subpackages are still discovered.
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["DiTAR*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+"*" = ["*.yaml", "*.yml", "*.txt", "*.json"]

@@ -1,0 +1,68 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ---- envs / caches ----
+.venv/
+venv/
+env/
+.env
+.cache/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# ---- logs / outputs ----
+*.log
+eval_logs/
+results/
+outputs/
+wandb/
+
+# ---- large assets that users download / link themselves ----
+# Pretrained encoders, ASR/speaker/UTMOS eval models, VAE vocoder, backbone LM.
+# On this machine these are symlinks into shared storage; do not commit them.
+/checkpoints/
+# Test-set manifests + audio (LibriSpeech / Seed-TTS) — see src/DiTAR/eval/README.md
+/data/
+
+# ---- model checkpoints ----
+# The released GROW checkpoints are large (~4–13 GB each) and distributed via
+# HuggingFace, not git. Keep the folder layout + config.yaml, ignore the weights.
+model_ckpts/**/*.pt
+model_ckpts/**/*.safetensors
+ckpts
+
+# ---- misc ----
+.DS_Store
+*.swp
+.vscode/
+
+# ---- scratch / internal (never ship) ----
+_renametest/
+*.mjs
+.audit_*
+.prerelease_*
+
+# ---- release upload logs ----
+_upload_logs/
+upload_to_hf.py.log

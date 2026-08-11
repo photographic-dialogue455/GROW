@@ -1,0 +1,110 @@
+wandb_config:
+  project: DiTAR-ORW
+  wandb_run_name: orw_semanticvae_${now:%Y-%m-%d}_${now:%H-%M-%S}
+  resume_id: null
+  mode: online
+  notes: null
+ckpts:
+  logger: wandb
+  log_samples: false
+  save_per_updates: 25
+  keep_last_n_checkpoints: -1
+  last_per_updates: 25
+  save_dir: ckpts/ditar_orw_sim_and_wer_step10_beta0.025_lr2e-6
+  checkpoint_step: null
+  max_updates: 900
+  early_stop_min_acc: null
+  early_stop_reward_types:
+  - sim_and_wer
+datasets:
+  train_ds_path: data/RL_mixed_emilia_libritts_30k
+  val_ds_path: data/Emilia_RL_zhen_dev
+  batch_size_per_gpu: 4000
+  batch_size_type: frame
+  max_samples: 1
+  num_workers: 8
+  target_sample_rate: 16000
+optim:
+  epochs: 10
+  learning_rate: 2.0e-06
+  num_warmup_updates: 0
+  grad_accumulation_steps: 2
+  max_grad_norm: 5.0
+  bnb_optimizer: false
+  frozen_pattern:
+  - generator
+model:
+  name: DiTAR_ORW
+  audio_type: vae_online
+  audio_channels: 64
+  patch_size: ${model.aggregation_encoder.patch_size}
+  dim: ${model.backbone.hidden_size}
+  mlp_hidden_dim: 512
+  orw:
+    ref_ckpt_path: model_ckpts/01_pretrain/model_200000.pt
+    beta: 0.025
+    alpha: 1.0
+    n_rollout: 8
+    rm_method: grpo
+    reward_type: sim_and_wer
+    sample_steps: 10
+    cfg_strength: 1.5
+    sway_sampling_coef: -1.0
+    max_seq_length: 155
+    min_seq_length: 10
+    rollout_solver: euler
+    rollout_sample_strategy: null
+    cfg_anneal: false
+    cfg_strength_final: 0.0
+    cfg_anneal_steps: 899
+    loss_cfg: false
+    loss_cfg_uncond_stopgrad: false
+    loss_drop_cond: false
+    uncond_reg: false
+    uncond_reg_weight: ${model.orw.beta}
+    kl_split_cond_uncond: false
+    time_sampling: uniform
+    asr:
+      lang: en
+      ckpt_dir: ''
+    spk:
+      ckpt_path: checkpoints/wavlm_large_finetune.pth
+      gen_sample_rate: 16000
+      prompt_sample_rate: ${datasets.target_sample_rate}
+    wer_weight: 1.0
+    sim_weight: 1.0
+  backbone:
+    name: Qwen
+    hidden_size: 1024
+    version: qwen3
+    qwen_config_path: checkpoints/Qwen3-0.6B/config.json
+    pretrained_LM_path: checkpoints/Qwen3-0.6B
+    load_pretrained_weights: true
+  aggregation_encoder:
+    name: qwen
+    hidden_size: ${model.backbone.hidden_size}
+    intermediate_size: 4096
+    num_attention_heads: 16
+    num_hidden_layers: 6
+    patch_size: 4
+    pool_type: cls
+  loc_decoder:
+    name: DiT
+    model:
+      dim: 1024
+      out_dim: ${model.audio_channels}
+      depth: 6
+      heads: 16
+      ff_mult: 4
+      qk_norm: null
+      pe_attn_head: null
+      checkpoint_activations: false
+    history_vae_window_size: 4
+    drop_cond_prob: 0.1
+  vocoder:
+    mel_spec_type: semanticvae
+    is_local: true
+    local_path: checkpoints/Semantic-VAE/semantic_vae_1000k
+    feature_extractor_ckpt: checkpoints/Semantic-VAE/semantic_vae_1000k
+loss_weight:
+  diff_loss: 1.0

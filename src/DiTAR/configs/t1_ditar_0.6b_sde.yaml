@@ -1,0 +1,125 @@
+# DiTAR-GRPO baseline: SDE / Flow-GRPO fine-tuning (Table 1).
+# Derived from t1_ditar_0.6b_orw.yaml; model.name=DiTAR_SDE (dit_ar_sde.py). The
+# model.orw block adds SDE-specific hyperparameters; loss = REINFORCE pg_loss + beta·KL
+# (KL acts on the denoising-distribution mean). Entry point train_ditar_sde.py reuses
+# DiTAR_ORW_Trainer; flow / init are identical to ORW.
+
+hydra:
+  run:
+    dir: ckpts/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+
+wandb_config:
+  project: DiTAR-SDE
+  wandb_run_name: sde_semanticvae_${now:%Y-%m-%d}_${now:%H-%M-%S}
+  resume_id: null
+  mode: online   # 'online' | 'offline' | 'disabled'
+
+ckpts:
+  logger: wandb
+  save_per_updates: 100
+  keep_last_n_checkpoints: -1
+  last_per_updates: 100
+  save_dir: ckpts/sde/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  checkpoint_step:
+  max_updates: null                   # auto-stop after this global_update (null = no limit)
+  # Crash early-stop: end when global mean implicit_acc drops below this (null = off).
+  # Only active when reward_type is in early_stop_reward_types (acc = (sim + (1-wer))/2 ∈ [0,1]).
+  early_stop_min_acc: null
+  early_stop_reward_types:
+    - sim_and_wer
+
+datasets:
+  train_ds_path: data/RL_mixed_emilia_libritts_30k
+  val_ds_path: data/Emilia_RL_zhen_dev
+
+  batch_size_per_gpu: 4000
+  batch_size_type: frame
+  max_samples: 1
+  num_workers: 8
+  target_sample_rate: 16000
+
+optim:
+  epochs: 10
+  learning_rate: 2.0e-6           # small LR for the RL stage
+  grad_accumulation_steps: 2
+  max_grad_norm: 5.0
+  bnb_optimizer: False
+
+model:
+  name: DiTAR_SDE
+  audio_type: vae_online
+  audio_channels: 64
+  patch_size: ${model.aggregation_encoder.patch_size}
+  dim: ${model.backbone.hidden_size}
+  mlp_hidden_dim: 512
+
+  # ---- SDE / Flow-GRPO section (reuses the orw block name, read by DiTAR_SDE) ----------
+  orw:
+    # Pretrained DiTAR checkpoint (SFT); ref and policy both init from here on the first run.
+    ref_ckpt_path: model_ckpts/01_pretrain/model_200000.pt
+    # ---- shared with ORW ----
+    beta: 0.0                  # KL coefficient (acts on the denoising-distribution mean)
+    alpha: 0.1                 # temperature τ (SDE uses grpo only; kept for compatibility)
+    n_rollout: 8               # group size G
+    rm_method: grpo            # DiTAR-GRPO baseline fixed to A/σ
+
+    # reward: "wer" 1-WER | "sim" WavLM speaker similarity | "sim_and_wer" both
+    reward_type: sim_and_wer
+    wer_weight: 1.0            # sim_and_wer linear weights
+    sim_weight: 1.0
+
+    # ---- rollout sampling hyperparameters (same as sample_batch) ----
+    sample_steps: 10           # rollout NFE (Table 1 sweeps 32/10/5)
+    cfg_strength: 1.5
+    sway_sampling_coef: -1.0
+    max_seq_length: 155        # ~15s
+    min_seq_length: 10         # ~1.5s buffer
+
+    # ---- SDE / Flow-GRPO specific ----
+    noise_level: 0.8           # SDE noise strength (σ_t = sigma_prev·sin(noise_level·π/2))
+    sde_size: 3                # number of consecutive SDE steps sampled in the first half (MixGRPO window)
+    sde_sigma: 0.0             # flow-matching sigma; 0 makes noise_level=0 reduce to exact Euler
+    sample_strategy: stage     # rollout CFG schedule: stage | base | apg
+    eos_threshold: 0.5         # EOS stop threshold (softmax[:,1] > eos_threshold)
+
+    spk:
+      ckpt_path: checkpoints/wavlm_large_finetune.pth   # WavLM finetuned weights (same as eval run_sim)
+      gen_sample_rate: 16000   # generator (Semantic-VAE) output sample rate
+      prompt_sample_rate: ${datasets.target_sample_rate}  # prompt (raw_wav) sample rate
+
+  backbone:
+    name: Qwen
+    hidden_size: 1024
+    version: qwen3
+    qwen_config_path: checkpoints/Qwen3-0.6B/config.json
+    pretrained_LM_path: checkpoints/Qwen3-0.6B
+    load_pretrained_weights: true
+  aggregation_encoder:
+    name: qwen
+    hidden_size: ${model.backbone.hidden_size}
+    intermediate_size: 4096
+    num_attention_heads: 16
+    num_hidden_layers: 6
+    patch_size: 4
+    pool_type: cls
+  loc_decoder:
+    name: DiT
+    model:
+      dim: 1024
+      out_dim: ${model.audio_channels}
+      depth: 6
+      heads: 16
+      ff_mult: 4
+      qk_norm: null
+      pe_attn_head: null
+      checkpoint_activations: False
+    history_vae_window_size: 4
+    drop_cond_prob: 0.1
+  vocoder:
+    mel_spec_type: semanticvae
+    is_local: True  # use local offline ckpt or not
+    local_path: checkpoints/Semantic-VAE/semantic_vae_1000k  # local vocoder path
+    feature_extractor_ckpt: checkpoints/Semantic-VAE/semantic_vae_1000k
+
+loss_weight:
+  diff_loss: 1.0

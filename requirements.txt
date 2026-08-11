@@ -1,0 +1,65 @@
+# ============================================================================
+# GROW — pinned Python dependencies
+#
+# Tested on: Python 3.10 · NVIDIA A800-80GB · CUDA 12.6 · torch 2.7.0
+#
+# Install (see README.md for the full guide):
+#   pip install torch==2.7.0 torchaudio==2.7.0 torchvision==0.22.0 \
+#       --index-url https://download.pytorch.org/whl/cu126
+#   pip install -r requirements.txt
+#   pip install -e .
+# ============================================================================
+
+# ---- core: model + training + inference ----
+numpy==1.26.4               # keep <2.0
+scipy==1.11.4
+einops==0.8.1
+PyYAML==6.0.2
+tqdm==4.67.1
+matplotlib==3.7.5
+transformers==4.57.6
+tokenizers==0.22.2
+safetensors==0.6.2
+huggingface-hub==0.34.4
+accelerate==1.12.0
+datasets==4.8.5
+sentencepiece==0.2.1
+transformers-stream-generator==0.0.5
+hydra-core==1.3.2
+omegaconf==2.3.0
+wandb==0.27.0
+ema-pytorch==0.7.9
+bitsandbytes==0.49.2
+x-transformers==2.19.3
+torchdiffeq==0.2.5
+soundfile==0.13.1
+librosa==0.11.0
+pydub==0.25.1
+numba==0.61.2
+encodec==0.1.1
+julius==0.2.7
+
+# ---- text front-end (Chinese pinyin / word segmentation) ----
+pypinyin==0.55.0
+jieba==0.42.1
+
+# ---- VAE tokenizer (src/DiTAR/vae_dac) ----
+descript-audiotools==0.7.2
+descript-audio-codec==1.0.0
+flatten-dict==0.5.0
+argbind==0.3.9
+
+# ---- data preparation ----
+pandas==2.3.3
+
+# ---- evaluation: WER / speaker similarity ----
+jiwer==3.0.4
+funasr==1.3.1
+faster-whisper==1.2.1
+qwen-asr==0.0.6
+Resemblyzer==0.1.4
+zhconv==1.4.3
+zhon==2.1.1
+
+# NOTE: torch/torchaudio/torchvision are installed separately (CUDA wheel index)
+#       — see the header above / README.md.
